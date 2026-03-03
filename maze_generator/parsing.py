@@ -1,3 +1,7 @@
+class InvalideValue(Exception):
+    pass
+
+
 
 def parsing_line(line: str) -> tuple:
     if "=" not in line:
@@ -7,11 +11,14 @@ def parsing_line(line: str) -> tuple:
     key = key.strip()
     value = value.strip()
 
-    if key in ("WIDTH", "HEIGHT", "SEED"):
+    if key in ("WIDTH", "HEIGHT"):
         if not value.isdigit():
             raise ValueError(f"{key} must be an integer. Got: {value}")
         value = int(value)
-
+        if value < 10:
+            raise InvalideValue(f"Error: number {value} is less then 10 please try another number")
+        elif value > 20:
+            raise InvalideValue(f"Error: number {value} is more then 20 please try another number")
     elif key in ("ENTRY", "EXIT"):
         parts = value.split(",")
         if len(parts) != 2 or not all(p.strip().isdigit() for p in parts):
@@ -52,6 +59,7 @@ def validate_config(config: dict):
 def read_file():
     path = "config.txt"
     config = {}
+
     with open(path, "r") as file:
         for line in file:
             line = line.strip()

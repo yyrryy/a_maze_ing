@@ -35,8 +35,8 @@ class MazeGenerator:
         self.grid: List[List[Cell]] = self.create_grid()
         self.isperfect = isperfect
         #self.bonuses: List = []
-        if seed is None:
-            seed = random.randint(0, 10**6)
+        # if seed is None:
+        #     seed = random.randint(0, 10**6)
         self.seed = seed
 
         # Create a dedicated RNG
@@ -81,13 +81,19 @@ class MazeGenerator:
         start = grid[0][0]
         start.isvisited = True
         stack.append(start)
+        if self.seed is None:
+            seed = random.randint(0, 10**6)
+        else:
+            seed = self.seed
+        random.seed(seed)
+        print(f"Current maze seed: {seed}")
         while stack:
             current_cell = stack[-1]
             neighbors = get_neighbors(grid, current_cell, width, height)
             #random.seed(this_seed)
             if neighbors:
                 # direction, next_cell = random.choice(neighbors)
-                direction, next_cell = self.rng.choice(neighbors)
+                direction, next_cell = random.choice(neighbors)
                 
                 current_cell.remove_walls(next_cell, direction)
 
@@ -131,7 +137,8 @@ class MazeGenerator:
         parents = {
             start: {
                 "parent": None,
-                "is_solution": False
+                "is_solution": False,
+                "direction": None
             }
         }
 
@@ -164,19 +171,23 @@ class MazeGenerator:
                     visited.add((nx, ny))
                     parents[(nx, ny)] = {
                         "parent": (x, y),
-                        "is_solution": False
+                        "is_solution": False,
+                        "direction": direction
                     }
                     cells_to_explore.append((nx, ny))
         return get_path(parents, grid)
         #return parents
 
-    def print_maze(self, grid, entry, exit, path, color="\033[97m"):
+    def print_maze(self, grid, entry, end, path, color="\033[97m"):
         RESET = "\033[0m"
         height = len(grid)
         width = len(grid[0])
-        ex, ey = exit
+        ex, ey = end
         sx, sy = entry
-        
+        cells_of_42 = _42cells(width, height)
+        if (entry in cells_of_42 or end in cells_of_42):
+            raise ValueError("entry or exit shouldnt be in 42 cells")
+            
         # ===== Top Border =====
         top_line = "┌"
         for x in range(width):
@@ -197,7 +208,7 @@ class MazeGenerator:
                     middle_line += " S "
                 elif (x, y) == (ex, ey):
                     middle_line += " G "
-                elif (x, y) in _42cells(width, height):
+                elif (x, y) in cells_of_42:
                     this_cell = self.get_cell(x, y)
                     this_cell.is42 = True
                     this_cell.isvisited = True

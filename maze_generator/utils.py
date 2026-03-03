@@ -103,14 +103,18 @@ def get_path(path: dict, grid: list, color="\033[97m"):
         if value["is_solution"]:
             solution_key = key
     real_path = []
-
-
+    real_direction = []
     current = solution_key
-
+    current_direction = path[solution_key]["direction"]
     while current is not None:
         real_path.append(current)
+        if current_direction:
+            real_direction.append(current_direction)
+            current_direction = path[current]["direction"]
         current = path[current]["parent"]
-
+    with open("output.txt", "a") as f:
+        real_direction.reverse()
+        print(*real_direction, sep="", file=f)
     real_path.reverse()
     return real_path
 

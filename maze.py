@@ -31,10 +31,11 @@
 #         os.system("clear")
 # execute_choice(choice)
 
-
+import sys
 import os
+import time
 from colorama import init
-from maze_generator.parsing import read_file
+from maze_generator.parsing import read_file, InvalideValue
 from maze_generator.maze_generator import MazeGenerator
 
 init()  # Windows support
@@ -48,31 +49,48 @@ COLORS = [
     "\033[95m",  # Magenta
     "\033[96m",  # Cyan
 ]
+def clear_screen():
+    os.system("clear" if os.name != "nt" else "cls")
 
 color_index = 0
-config = read_file()
+def print_title(file_path, delay=0.7, color=COLORS[1]):
+    clear_screen()
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            print(color + line.rstrip() + "\033[0m")
+            time.sleep(delay)
+try:
+    config = read_file()
+    width = config["WIDTH"]
+    height = config["HEIGHT"]
+    start = config["ENTRY"]
+    perfect = config["PERFECT"]
+    end = config["EXIT"]
+    try:
+        seed = config["SEED"]
+    except Exception:
+        seed = None
+except (InvalideValue, ValueError) as  e:
+    print(e)
+    sys.exit(1)
 
-width = config["WIDTH"]
-height = config["HEIGHT"]
-start = config["ENTRY"]
-perfect = config["PERFECT"]
-end = config["EXIT"]
-seed = None
 # try:
 #     seed = config["SEED"]
 # except Exception as e:
 #     print("sds")
 # print("++++++++++", seed)
-maze = MazeGenerator(width, height, seed, perfect, start, end)
+#print_title("paint_maze.txt", delay=0.8, color=COLORS[color_index])
 
-os.system("clear" if os.name != "nt" else "cls")
+clear_screen()
+maze = MazeGenerator(width, height, seed, perfect, start, end)
+# try:
 grid = maze.create_grid()
 maze.generate_maze(grid)
 maze.print_maze(grid, start, end, [], COLORS[color_index])
 path = []
 show_path = False
 while True:
-    print(f"Current maze seed: {maze.seed}")
+    
     # for cells in maze.grid:
     #     for cell in cells:
     #         print("====cells======", cell.walls, cell.isvisited)
@@ -90,7 +108,7 @@ while True:
     print("║ {:<36} ║".format("3. Rotate maze colors"))
     print("║ {:<36} ║".format("4. Quit"))
     print("╚" + "═" * 38 + "╝")
-    
+
     try:
         choice = input("Choice? (1-4): ")
         try:
@@ -99,13 +117,13 @@ while True:
             continue
 
         if choice == 1:
-            os.system("clear" if os.name != "nt" else "cls")
+            clear_screen()
             show_path = False
             grid = maze.create_grid()
             maze.generate_maze(grid)
             maze.print_maze(grid, start, end, [], COLORS[color_index])
         elif choice == 2:
-            os.system("clear" if os.name != "nt" else "cls")
+            clear_screen()
             show_path = not show_path
             if show_path:
                 path = maze.solve_maze(grid)
@@ -115,7 +133,7 @@ while True:
             #print(maze.solve_maze(grid))
 
         elif choice == 3:
-            os.system("clear" if os.name != "nt" else "cls")
+            clear_screen()
             if show_path:
                 path = maze.solve_maze(grid)
             else:
@@ -131,3 +149,5 @@ while True:
             break
     except (KeyboardInterrupt, EOFError):
         continue
+# except Exception as e:
+#     print(e) 
