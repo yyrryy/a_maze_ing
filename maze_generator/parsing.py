@@ -52,7 +52,6 @@ def validate_config(config: dict):
 def read_file():
     path = "config.txt"
     config = {}
-
     with open(path, "r") as file:
         for line in file:
             line = line.strip()

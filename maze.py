@@ -34,8 +34,8 @@
 
 import os
 from colorama import init
-from parsing import read_file
-from cell import create_grid, print_maze
+from maze_generator.parsing import read_file
+from maze_generator.maze_generator import MazeGenerator
 
 init()  # Windows support
 
@@ -50,21 +50,37 @@ COLORS = [
 ]
 
 color_index = 0
-
 config = read_file()
+
 width = config["WIDTH"]
 height = config["HEIGHT"]
-entry = config["ENTRY"]
-exit = config["EXIT"]
+start = config["ENTRY"]
+perfect = config["PERFECT"]
+end = config["EXIT"]
+seed = None
+# try:
+#     seed = config["SEED"]
+# except Exception as e:
+#     print("sds")
+# print("++++++++++", seed)
+maze = MazeGenerator(width, height, seed, perfect, start, end)
 
-grid = create_grid(width, height)
-
-
+os.system("clear" if os.name != "nt" else "cls")
+grid = maze.create_grid()
+maze.generate_maze(grid)
+maze.print_maze(grid, start, end, [], COLORS[color_index])
+path = []
+show_path = False
 while True:
-    os.system("clear" if os.name != "nt" else "cls")
-
-    print_maze(grid, entry, exit, COLORS[color_index])
-
+    print(f"Current maze seed: {maze.seed}")
+    # for cells in maze.grid:
+    #     for cell in cells:
+    #         print("====cells======", cell.walls, cell.isvisited)
+    # maze.generate_maze(grid)
+    # maze.print_maze(grid, entry, exit, COLORS[color_index])
+    # for cells in maze.grid:
+    #     for cell in cells:
+    #         print(cell.x, cell.x, cell.isvisited, cell.is42)
     print("\n")
     print("═" * 40)
     print("║{:^38}║".format("A-Maze-ing"))
@@ -74,20 +90,44 @@ while True:
     print("║ {:<36} ║".format("3. Rotate maze colors"))
     print("║ {:<36} ║".format("4. Quit"))
     print("╚" + "═" * 38 + "╝")
-
-    choice = input("Choice? (1-4): ")
-
+    
     try:
-        choice = int(choice)
-    except ValueError:
+        choice = input("Choice? (1-4): ")
+        try:
+            choice = int(choice)
+        except ValueError:
+            continue
+
+        if choice == 1:
+            os.system("clear" if os.name != "nt" else "cls")
+            show_path = False
+            grid = maze.create_grid()
+            maze.generate_maze(grid)
+            maze.print_maze(grid, start, end, [], COLORS[color_index])
+        elif choice == 2:
+            os.system("clear" if os.name != "nt" else "cls")
+            show_path = not show_path
+            if show_path:
+                path = maze.solve_maze(grid)
+            else:
+                path = []
+            maze.print_maze(grid, start, end, path, COLORS[color_index])
+            #print(maze.solve_maze(grid))
+
+        elif choice == 3:
+            os.system("clear" if os.name != "nt" else "cls")
+            if show_path:
+                path = maze.solve_maze(grid)
+            else:
+                path = []
+            color_index = (color_index + 1) % len(COLORS)
+            maze.print_maze(grid, start, end, path, COLORS[color_index])
+
+        elif choice == 4:
+            print("Goodbye 👋")
+            break
+        else:
+            print("Not valid input !")
+            break
+    except (KeyboardInterrupt, EOFError):
         continue
-
-    if choice == 1:
-        grid = create_grid(width, height)
-
-    elif choice == 3:
-        color_index = (color_index + 1) % len(COLORS)
-
-    elif choice == 4:
-        print("Goodbye 👋")
-        break

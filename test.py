@@ -2,7 +2,7 @@ class cell:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.visited = False
+        self.isvisited = False
         self.walls = {"W": True, "S": True, "N": True, "E": True}
 
 
@@ -42,7 +42,7 @@ def draw_42(grid):
     for y in range(pattern_height):
         for x in range(pattern_width):
             if pattern[y][x] == "🟦":
-                grid[start_y + y][start_x + x].visited = True
+                grid[start_y + y][start_x + x].isvisited = True
 
 
 # ===============================
@@ -72,7 +72,7 @@ def print_maze_with_start_gift(grid, entry, exit):
                 middle_line += " 🚶 "
             elif (x, y) == (ex, ey):
                 middle_line += " 🎁 "
-            elif grid[y][x].visited:
+            elif grid[y][x].isvisited:
                 middle_line += " 🟦 "
             else:
                 middle_line += "    "
