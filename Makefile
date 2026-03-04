@@ -3,7 +3,7 @@ install:
 	pip3 install -r requirements.txt
 
 run:
-	@python3 maze.py config.txt
+	@python3 a_maze_ing.py config.txt
 
 debug:
 	@python3 -m pdb a_maze_ing.py config.txt

@@ -96,7 +96,7 @@ def get_open_neighbors(grid, current_cell, width, height):
         current_cell.isvisited = True
     return neighbors
 
-def get_path(path: dict, grid: list, color="\033[97m"):
+def get_path(path: dict, grid: list, output_file, print_to_file, color="\033[97m"):
     RESET = "\033[0m"
     solution_key=None
     for key, value in path.items():
@@ -112,9 +112,10 @@ def get_path(path: dict, grid: list, color="\033[97m"):
             real_direction.append(current_direction)
             current_direction = path[current]["direction"]
         current = path[current]["parent"]
-    with open("output.txt", "a") as f:
-        real_direction.reverse()
-        print(*real_direction, sep="", file=f)
+    if print_to_file:
+        with open(output_file, "a") as f:
+            real_direction.reverse()
+            print(*real_direction, sep="", file=f)
     real_path.reverse()
     return real_path
 
@@ -144,3 +145,21 @@ def bfs_solver(maze, width, height, start, end):
     
     return None
 
+def print_hexa(output_file, grid, start, end):
+    with open(output_file, "w") as f:
+        for cells in grid:
+            for cell in cells:
+                value = (
+                    (int(cell.walls["N"]) << 3) |
+                    (int(cell.walls["E"]) << 2) |
+                    (int(cell.walls["S"]) << 1) |
+                    int(cell.walls["W"])
+                )
+                f.write(f"{value:X}")  # Direct hex formatting
+            f.write("\n")
+        f.write("\n")
+        f.write(str(start))
+        f.write("\n")
+        f.write(str(end))
+        f.write("\n")
+                

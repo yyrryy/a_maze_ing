@@ -1,6 +1,6 @@
 import random
 from typing import List, Optional, Tuple
-from .utils import _42cells, get_neighbors, reset_cells, get_path
+from .utils import _42cells, get_neighbors, reset_cells, get_path, print_hexa
 from collections import deque
 
 class Cell:
@@ -26,18 +26,22 @@ class Cell:
 
 class MazeGenerator:
     def __init__(self, width: int, height: int,
-                 seed: int | None, isperfect: bool, start: tuple, end: tuple) -> None:
-
+                 seed: int | None, isperfect: bool, start: tuple, end: tuple, output_file: str) -> None:
         self.start = start
         self.end = end
         self.width = width
         self.height = height
         self.grid: List[List[Cell]] = self.create_grid()
         self.isperfect = isperfect
+        self.output_file = output_file
         #self.bonuses: List = []
+        if seed is not None:
+            self.seed = seed
+        else:
+            self.seed = random.randint(0, 10**6)
         # if seed is None:
         #     seed = random.randint(0, 10**6)
-        self.seed = seed
+        #self.seed = seed
 
         # Create a dedicated RNG
         self.rng = random.Random(self.seed)
@@ -81,12 +85,9 @@ class MazeGenerator:
         start = grid[0][0]
         start.isvisited = True
         stack.append(start)
-        if self.seed is None:
-            seed = random.randint(0, 10**6)
-        else:
-            seed = self.seed
-        random.seed(seed)
-        print(f"Current maze seed: {seed}")
+        
+        random.seed(str(self.seed))
+        print(f"Current maze seed: {self.seed}")
         while stack:
             current_cell = stack[-1]
             neighbors = get_neighbors(grid, current_cell, width, height)
@@ -125,9 +126,11 @@ class MazeGenerator:
                         #current_cell.remove_walls(next_cell, direction)
                         #self.carve(rx, ry, nx, ny, random_dir)
         reset_cells(grid, width, height)
+        
+        print_hexa(self.output_file, grid, self.start, self.end)
 
     # solve using BFS
-    def solve_maze(self, grid):
+    def solve_maze(self, grid, print_to_file):
         # print("asdasd")
         start = self.start
         goal = self.end
@@ -175,7 +178,7 @@ class MazeGenerator:
                         "direction": direction
                     }
                     cells_to_explore.append((nx, ny))
-        return get_path(parents, grid)
+        return get_path(parents, grid, self.output_file, print_to_file)
         #return parents
 
     def print_maze(self, grid, entry, end, path, color="\033[97m"):
