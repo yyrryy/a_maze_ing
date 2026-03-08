@@ -42,7 +42,11 @@ def parsing_line(line: str) -> tuple:
         #     raise ValueError(f"SEED must be an integer. Got: {value}")
         # value = int(value)
     elif key == "OUTPUT_FILE":
-        if value == "/" or not value:
+        try:
+            open(value, "w")
+        except Exception:
+            raise InvalideValue("OUTPUT_FILE cannot be directory")
+        if not value:
             raise InvalideValue("OUTPUT_FILE cannot be '/' or empty")
 
     if key not in {"WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT", "SEED"}:

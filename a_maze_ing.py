@@ -1,36 +1,3 @@
-# from cell import create_grid, cell
-# from parsing import read_file
-# from cell import print_maze
-
-
-# config = read_file()
-# width = config["WIDTH"]
-# height = config["HEIGHT"]
-# entry = config["ENTRY"]
-# exit = config["EXIT"]
-
-# grid = create_grid(width, height)
-
-
-# print_maze(grid, entry, exit)
-
-# print("\n\n")
-
-# print("═" * 40)
-# print("║{:^38}║".format("A-Maze-ing"))
-# print("╠" + "═" * 38 + "╣")
-# print("║ {:<36} ║".format("1. Re-generate a new maze"))
-# print("║ {:<36} ║".format("2. Show/Hide path from entry to exit"))
-# print("║ {:<36} ║".format("3. Rotate maze colors"))
-# print("║ {:<36} ║".format("4. Quit"))
-# print("╚" + "═" * 38 + "╝")
-# choice = input("Choice? (1-4): ")
-# import os
-# def execute_choice(cc):
-#     if int(cc)==3:
-#         os.system("clear")
-# execute_choice(choice)
-
 import sys
 import os
 import time
@@ -117,7 +84,8 @@ try:
             try:
                 choice = int(choice)
             except ValueError:
-                continue
+                print("Not valid input !")
+                break
 
             if choice == 1:
                 clear_screen()
@@ -137,7 +105,6 @@ try:
                 except (InvalideValue, ValueError) as  e:
                     print(e)
                     sys.exit(1)
-                clear_screen()
                 maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
                 # try:
                 grid = maze.create_grid()
@@ -173,26 +140,56 @@ try:
             elif choice == 5:
                 fixed_seed_flag = not fixed_seed_flag
                 maze.fix_seed()
-                continue
+                clear_screen()
+                try:
+                    config = read_file()
+                    width = config["WIDTH"]
+                    height = config["HEIGHT"]
+                    start = config["ENTRY"]
+                    perfect = config["PERFECT"]
+                    end = config["EXIT"]
+                    output_file = config["OUTPUT_FILE"]
+                    try:
+                        seed = config["SEED"]
+                    except Exception:
+                        seed = None
+
+                except (InvalideValue, ValueError) as  e:
+                    print(e)
+                    sys.exit(1)
+                maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+                # try:
+                grid = maze.create_grid()
+                maze.generate_maze(grid)
+                maze.print_maze(grid, start, end, [], COLORS[color_index])
+                maze.solve_maze(grid, True)
+                path = []
+                show_path = False
             elif choice == 6:
                 try:
-                    show_path = not show_path
+                    show_path = False
                     width = maze.width
                     height = maze.height
                     coords = input("Enter exit coordinations [x,y]; ")
                     coords = coords.split(",")
                     x, y = int(coords[0]), int(coords[1])
-                    with open("config.txt", "w") as file:
-                        print(f"""WIDTH={width}
+                    if 0 < x > width or 0 < y > height:
+                        print("coordinations are out of maze")
+                    else:
+                        try:
+                            with open("config.txt", "w") as file:
+                                print(f"""WIDTH={width}
 ENTRY={maze.start[0]},{maze.start[1]}
 EXIT={x},{y}
 perFect={maze.isperfect}
 HEIGHT={maze.height}
-OUTPUT_FILE={maze.output_file}
-""", file=file)
-                    if fixed_seed_flag:
-                        with open("config.txt", "a") as file:
-                            print(f"SEED={maze.seed}", file=file)
+OUTPUT_FILE={maze.output_file}\n""",
+                                    file=file)
+                            if fixed_seed_flag:
+                                with open("config.txt", "a") as file:
+                                    print(f"SEED={maze.seed}", file=file)
+                        except PermissionError:
+                            print("No permission to open the config file")
                     try:
                         config = read_file()
                         width = config["WIDTH"]
@@ -217,7 +214,7 @@ OUTPUT_FILE={maze.output_file}
                     maze.print_maze(grid, start, end, [], COLORS[color_index])
                     maze.solve_maze(grid, True)
                 except (ValueError, KeyboardInterrupt) as e:
-                    print("\nInput not valid, Exiting", e)
+                    print("\nInput is not valid, Exiting", e)
                     break
                 except Exception as e:
                     print("An unexpected error", e)
@@ -225,6 +222,6 @@ OUTPUT_FILE={maze.output_file}
                 print("Not valid input !")
                 break
         except (KeyboardInterrupt, EOFError):
-            continue
+            break
 except Exception as e:
     print(e)

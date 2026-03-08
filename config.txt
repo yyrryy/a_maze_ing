@@ -1,8 +1,7 @@
 WIDTH=10
 ENTRY=0,0
-EXIT=0,2
+EXIT=3,3
 perFect=False
 HEIGHT=10
-OUTPUT_FILE=output.txt
+OUTPUT_FILE='test.txt'
 
-seed=4783
