@@ -35,8 +35,7 @@ import sys
 import os
 import time
 from colorama import init
-from maze_generator.parsing import read_file, InvalideValue
-from maze_generator.maze_generator import MazeGenerator
+from mazegen import MazeGenerator, read_file, InvalideValue
 try:
     init()  # Windows support
 
@@ -49,16 +48,19 @@ try:
         "\033[95m",  # Magenta
         "\033[96m",  # Cyan
     ]
+
     def clear_screen():
         os.system("clear" if os.name != "nt" else "cls")
 
     color_index = 0
+
     def print_title(file_path, delay=0.7, color=COLORS[1]):
         clear_screen()
         with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
                 print(color + line.rstrip() + "\033[0m")
                 time.sleep(delay)
+    fixed_seed_flag = False
     try:
         config = read_file()
         width = config["WIDTH"]
@@ -66,25 +68,21 @@ try:
         start = config["ENTRY"]
         perfect = config["PERFECT"]
         end = config["EXIT"]
+        output_file = config["OUTPUT_FILE"]
         try:
             seed = config["SEED"]
+            fixed_seed_flag = True
         except Exception:
             seed = None
 
-        print("seed", seed)
     except (InvalideValue, ValueError) as  e:
         print(e)
         sys.exit(1)
 
-    # try:
-    #     seed = config["SEED"]
-    # except Exception as e:
-    #     print("sds")
-    # print("++++++++++", seed)
     #print_title("paint_maze.txt", delay=0.8, color=COLORS[color_index])
 
     clear_screen()
-    maze = MazeGenerator(width, height, seed, perfect, start, end, "output.txt")
+    maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
     # try:
     grid = maze.create_grid()
     maze.generate_maze(grid)
@@ -110,10 +108,12 @@ try:
         print("║ {:<36} ║".format("2. Show/Hide path from entry to exit"))
         print("║ {:<36} ║".format("3. Rotate maze colors"))
         print("║ {:<36} ║".format("4. Quit"))
+        print("║ {:<36} ║".format("5. Fix/Unfix seed"))
+        print("║ {:<36} ║".format("6. Change Exit"))
         print("╚" + "═" * 38 + "╝")
 
         try:
-            choice = input("Choice? (1-4): ")
+            choice = input("Choice? (1-6): ")
             try:
                 choice = int(choice)
             except ValueError:
@@ -121,14 +121,34 @@ try:
 
             if choice == 1:
                 clear_screen()
-                maze = MazeGenerator(width, height, seed, perfect, start, end, "output.txt")
-                show_path = False
+                try:
+                    config = read_file()
+                    width = config["WIDTH"]
+                    height = config["HEIGHT"]
+                    start = config["ENTRY"]
+                    perfect = config["PERFECT"]
+                    end = config["EXIT"]
+                    output_file = config["OUTPUT_FILE"]
+                    try:
+                        seed = config["SEED"]
+                    except Exception:
+                        seed = None
+
+                except (InvalideValue, ValueError) as  e:
+                    print(e)
+                    sys.exit(1)
+                clear_screen()
+                maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+                # try:
                 grid = maze.create_grid()
                 maze.generate_maze(grid)
-                maze.solve_maze(grid, True)
                 maze.print_maze(grid, start, end, [], COLORS[color_index])
+                maze.solve_maze(grid, True)
+                path = []
+                show_path = False
             elif choice == 2:
                 clear_screen()
+                
                 show_path = not show_path
                 if show_path:
                     path = maze.solve_maze(grid, False)
@@ -136,7 +156,6 @@ try:
                     path = []
                 print(f"Current maze seed: {maze.seed}")
                 maze.print_maze(grid, start, end, path, COLORS[color_index])
-                #print(maze.solve_maze(grid))
 
             elif choice == 3:
                 clear_screen()
@@ -151,10 +170,61 @@ try:
             elif choice == 4:
                 print("Goodbye 👋")
                 break
+            elif choice == 5:
+                fixed_seed_flag = not fixed_seed_flag
+                maze.fix_seed()
+                continue
+            elif choice == 6:
+                try:
+                    show_path = not show_path
+                    width = maze.width
+                    height = maze.height
+                    coords = input("Enter exit coordinations [x,y]; ")
+                    coords = coords.split(",")
+                    x, y = int(coords[0]), int(coords[1])
+                    with open("config.txt", "w") as file:
+                        print(f"""WIDTH={width}
+ENTRY={maze.start[0]},{maze.start[1]}
+EXIT={x},{y}
+perFect={maze.isperfect}
+HEIGHT={maze.height}
+OUTPUT_FILE={maze.output_file}
+""", file=file)
+                    if fixed_seed_flag:
+                        with open("config.txt", "a") as file:
+                            print(f"SEED={maze.seed}", file=file)
+                    try:
+                        config = read_file()
+                        width = config["WIDTH"]
+                        height = config["HEIGHT"]
+                        start = config["ENTRY"]
+                        perfect = config["PERFECT"]
+                        end = config["EXIT"]
+                        output_file = config["OUTPUT_FILE"]
+                        try:
+                            seed = config["SEED"]
+                        except Exception:
+                            seed = None
+
+                    except (InvalideValue, ValueError) as e:
+                        print(e)
+                        sys.exit(1)
+                    clear_screen()
+                    maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+                    # try:
+                    grid = maze.create_grid()
+                    maze.generate_maze(grid)
+                    maze.print_maze(grid, start, end, [], COLORS[color_index])
+                    maze.solve_maze(grid, True)
+                except (ValueError, KeyboardInterrupt) as e:
+                    print("\nInput not valid, Exiting", e)
+                    break
+                except Exception as e:
+                    print("An unexpected error", e)
             else:
                 print("Not valid input !")
                 break
         except (KeyboardInterrupt, EOFError):
             continue
 except Exception as e:
-    print(e) 
+    print(e)

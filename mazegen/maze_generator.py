@@ -2,14 +2,16 @@ import random
 from typing import List, Optional, Tuple
 from .utils import _42cells, get_neighbors, reset_cells, get_path, print_hexa
 from collections import deque
-
+from time import sleep
+import sys
 class Cell:
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.isvisited = False
         self.is42 = False
-        self.walls = {"W": True, "S": True, "N": True, "E": True}
+        self.walls = {"N": True, "E": True, "S": True, "W": True}
+    
     def remove_walls(self, neighbor, direction):
         if direction == "N":
             self.walls["N"] = False
@@ -24,9 +26,19 @@ class Cell:
             self.walls["W"] = False
             neighbor.walls["E"] = False
 
+    def get_value(self) -> int:
+        value = 0
+        count = 0
+        for direction in self.walls:
+            closed = (self.walls[direction] is True)
+            value += closed << count
+            count += 1
+        return value
+
+
 class MazeGenerator:
     def __init__(self, width: int, height: int,
-                 seed: int | None, isperfect: bool, start: tuple, end: tuple, output_file: str) -> None:
+                 seed: int | None, isperfect: bool, start: tuple, end: tuple, output_file: str, fixed_seed) -> None:
         self.start = start
         self.end = end
         self.width = width
@@ -34,6 +46,7 @@ class MazeGenerator:
         self.grid: List[List[Cell]] = self.create_grid()
         self.isperfect = isperfect
         self.output_file = output_file
+        self.fixed_seed = fixed_seed
         #self.bonuses: List = []
         if seed is not None:
             self.seed = seed
@@ -49,6 +62,43 @@ class MazeGenerator:
         #     self.seed = seed
         # else:
         #     self.seed = random.randint(0, 10**6)
+
+    def fix_seed(self):
+        try:
+            if self.fixed_seed:
+                print("SEED unfixed, choose again")
+            else:
+                print("SEED fixed, choose again")
+            if self.fixed_seed:
+                with open("config.txt", "r") as f:
+                    lines = f.readlines()
+                not_in_file = False
+                for i in range(len(lines)):
+                    if lines[i].lower().startswith("seed="):
+                        lines[i] = ""
+                with open("config.txt", "w") as f:
+                    f.writelines(lines)
+                self.fixed_seed = False
+            else:
+                with open("config.txt", "r") as f:
+                    lines = f.readlines()
+                not_in_file = False
+                for i in range(len(lines)):
+                    if lines[i].lower().startswith("seed="):
+                        lines[i] = f"\nseed={self.seed}\n"
+                    else:
+                        not_in_file = True
+                with open("config.txt", "w") as f:
+                    f.writelines(lines)
+                    if not_in_file:
+                        if lines and lines[-1].endswith("\n"):
+                            f.write(f"seed={self.seed}\n")
+                        else:
+                            f.write(f"\nseed={self.seed}\n")
+                self.fixed_seed = True
+        except Exception as e:
+            print(f"ERROR: {e}")
+
     def create_grid(self):
         result = []
         for y in range(self.height):
@@ -102,29 +152,29 @@ class MazeGenerator:
                 stack.append(next_cell)
             else:
                 stack.pop()
-        directions = [
-            ("N", 0, -1),
-            ("S", 0, 1),
-            ("E", 1, 0),
-            ("W", -1, 0),
-        ]
-        if not self.isperfect:
-            extra_walls_to_break = int((self.width * self.height) / 10)
-            for _ in range(extra_walls_to_break):
-                rx, ry = random.randint(1, self.width-1), \
-                    random.randint(1, self.height-1)
-                random_dir = random.choice(directions)
-                direction, dx, dy = random_dir
-                nx, ny = rx + dx, ry + dy
-                # to make sure if it's owned by 42 block
-                curent_cell = self.get_cell(rx, ry)
-                next_cell = self.get_cell(nx, ny)
-                if curent_cell and next_cell:
-                    if self.inside_grid(nx, ny) and not curent_cell.is42 and\
-                            not next_cell.is42:
-                        pass
-                        #current_cell.remove_walls(next_cell, direction)
-                        #self.carve(rx, ry, nx, ny, random_dir)
+        # directions = [
+        #     ("N", 0, -1),
+        #     ("S", 0, 1),
+        #     ("E", 1, 0),
+        #     ("W", -1, 0),
+        # ]
+        # if not self.isperfect:
+        #     extra_walls_to_break = int((self.width * self.height) / 10)
+        #     for _ in range(extra_walls_to_break):
+        #         rx, ry = random.randint(1, self.width-1), \
+        #             random.randint(1, self.height-1)
+        #         random_dir = random.choice(directions)
+        #         direction, dx, dy = random_dir
+        #         nx, ny = rx + dx, ry + dy
+        #         # to make sure if it's owned by 42 block
+        #         curent_cell = self.get_cell(rx, ry)
+        #         next_cell = self.get_cell(nx, ny)
+        #         if curent_cell and next_cell:
+        #             if self.inside_grid(nx, ny) and not curent_cell.is42 and\
+        #                     not next_cell.is42:
+        #                 pass
+        #                 # current_cell.remove_walls(next_cell, direction)
+        #                 # self.carve(rx, ry, nx, ny, random_dir)
         reset_cells(grid, width, height)
         
         print_hexa(self.output_file, grid, self.start, self.end)
@@ -189,7 +239,8 @@ class MazeGenerator:
         sx, sy = entry
         cells_of_42 = _42cells(width, height)
         if (entry in cells_of_42 or end in cells_of_42):
-            raise ValueError("entry or exit shouldnt be in 42 cells")
+            print("entry or exit shouldnt be in 42 cells")
+            sys.exit(1)
             
         # ===== Top Border =====
         top_line = "┌"
@@ -218,11 +269,11 @@ class MazeGenerator:
                     #print(this_cell.is42)
                     middle_line += " ▣ "
                 elif (x, y) in path:
-                    middle_line += f" ♦ "
-
+                    middle_line += f" * "
                 else:
                     #middle_line += f"{x},{y}"
                     middle_line += f"   "
+                sleep(0.003)
 
             middle_line += "│" if grid[y][width - 1].walls["E"] else " "
             print(color + middle_line + RESET)
@@ -232,7 +283,7 @@ class MazeGenerator:
                 for x in range(width):
                     separator += "───" if grid[y][x].walls["S"] else "   "
                     if x < width - 1:
-                        separator += "┼"
+                        separator += "o"
                 separator += "┤"
                 print(color + separator + RESET)
 

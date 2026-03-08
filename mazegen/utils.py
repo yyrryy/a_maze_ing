@@ -149,17 +149,18 @@ def print_hexa(output_file, grid, start, end):
     with open(output_file, "w") as f:
         for cells in grid:
             for cell in cells:
-                value = (
-                    (int(cell.walls["N"]) << 3) |
-                    (int(cell.walls["E"]) << 2) |
-                    (int(cell.walls["S"]) << 1) |
-                    int(cell.walls["W"])
-                )
+                value = cell.get_value()
+                # value = (
+                #     (int(cell.walls["N"]) << 3) |
+                #     (int(cell.walls["E"]) << 2) |
+                #     (int(cell.walls["S"]) << 1) |
+                #     int(cell.walls["W"])
+                # )
                 f.write(f"{value:X}")  # Direct hex formatting
             f.write("\n")
         f.write("\n")
-        f.write(str(start))
+        f.write(f"{start[0]},{start[1]}")
         f.write("\n")
-        f.write(str(end))
+        f.write(f"{end[0]},{end[1]}")
         f.write("\n")
                 
