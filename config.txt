@@ -1,6 +1,6 @@
 WIDTH=10
 ENTRY=0,0
-EXIT=3,3
+EXIT=1,5
 perFect=False
 HEIGHT=10
 OUTPUT_FILE='test.txt'

@@ -1,6 +1,5 @@
 class InvalideValue(Exception):
     pass
-from ast import literal_eval
 
 
 def parsing_line(line: str) -> tuple:
@@ -16,13 +15,8 @@ def parsing_line(line: str) -> tuple:
         if not value.isdigit():
             raise ValueError(f"{key} must be a positive integer. Got: {value}")
         if not value:
-            raise ValueError(f"{key} must be a positive integer. Got: empty")
-            
+            raise ValueError(f"{key} must be a positive integer. Got: empty")    
         value = int(value)
-        # if value < 10 or value > 20:
-        #     raise InvalideValue(
-        #         f"{key} must be between 10 and 20. Got: {value}"
-        #     )
     elif key in ("ENTRY", "EXIT"):
         parts = value.split(",")
         if len(parts) != 2 or not all(p.strip().isdigit() for p in parts):
@@ -34,13 +28,9 @@ def parsing_line(line: str) -> tuple:
             raise ValueError(f"PERFECT must be True or False. Got: {value}")
         value = value == "true"
     elif key == "SEED":
-        try:
-            value = literal_eval(value)
-        except (ValueError, SyntaxError):
-            print(f"invalid input seed can just be (int, float, str, bytes, None)")
-        # if not value.isdigit():
-        #     raise ValueError(f"SEED must be an integer. Got: {value}")
-        # value = int(value)
+        if value == "":
+            raise ValueError("invalid input seed can just be "
+                  "(int, float, str, bytes, None)")
     elif key == "OUTPUT_FILE":
         try:
             open(value, "w")

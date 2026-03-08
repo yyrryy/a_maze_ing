@@ -1,6 +1,6 @@
 import sys
 import os
-import time
+from time import sleep
 from colorama import init
 from mazegen import MazeGenerator, read_file, InvalideValue
 try:
@@ -14,6 +14,7 @@ try:
         "\033[93m",  # Yellow
         "\033[95m",  # Magenta
         "\033[96m",  # Cyan
+        "\033[31m",  # Red
     ]
 
     def clear_screen():
@@ -21,12 +22,14 @@ try:
 
     color_index = 0
 
-    def print_title(file_path, delay=0.7, color=COLORS[1]):
+    def print_file(file_path, delay=0.05, color=COLORS[1]):
         clear_screen()
         with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
                 print(color + line.rstrip() + "\033[0m")
-                time.sleep(delay)
+                sleep(delay)
+
+    
     fixed_seed_flag = False
     try:
         config = read_file()
@@ -46,9 +49,11 @@ try:
         print(e)
         sys.exit(1)
 
-    #print_title("paint_maze.txt", delay=0.8, color=COLORS[color_index])
-
+    print_file("paint_maze.txt", delay=0.03, color="\033[92m")
+    
     clear_screen()
+    print_file("paint_maze.txt", 0, "\033[92m")
+    sleep(1.5)
     maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
     # try:
     grid = maze.create_grid()
@@ -74,9 +79,9 @@ try:
         print("║ {:<36} ║".format("1. Re-generate a new maze"))
         print("║ {:<36} ║".format("2. Show/Hide path from entry to exit"))
         print("║ {:<36} ║".format("3. Rotate maze colors"))
-        print("║ {:<36} ║".format("4. Quit"))
-        print("║ {:<36} ║".format("5. Fix/Unfix seed"))
-        print("║ {:<36} ║".format("6. Change Exit"))
+        print("║ {:<36} ║".format("4. Fix/Unfix seed"))
+        print("║ {:<36} ║".format("5. Change Exit"))
+        print("║ {:<36} ║".format("6. Quit"))
         print("╚" + "═" * 38 + "╝")
 
         try:
@@ -89,6 +94,7 @@ try:
 
             if choice == 1:
                 clear_screen()
+                print_file("paint_maze.txt", 0, "\033[92m")
                 try:
                     config = read_file()
                     width = config["WIDTH"]
@@ -115,7 +121,7 @@ try:
                 show_path = False
             elif choice == 2:
                 clear_screen()
-                
+                print_file("paint_maze.txt", 0, "\033[94m")
                 show_path = not show_path
                 if show_path:
                     path = maze.solve_maze(grid, False)
@@ -131,13 +137,15 @@ try:
                 else:
                     path = []
                 color_index = (color_index + 1) % len(COLORS)
+                print_file("paint_maze.txt", 0, COLORS[color_index])
                 print(f"Current maze seed: {maze.seed}")
                 maze.print_maze(grid, start, end, path, COLORS[color_index])
 
-            elif choice == 4:
+            elif choice == 6:
                 print("Goodbye 👋")
+                print_file("exit.txt", delay=0.04, color="\033[31m")
                 break
-            elif choice == 5:
+            elif choice == 4:
                 fixed_seed_flag = not fixed_seed_flag
                 maze.fix_seed()
                 clear_screen()
@@ -159,20 +167,24 @@ try:
                     sys.exit(1)
                 maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
                 # try:
+                print_file("paint_maze.txt", 0, COLORS[color_index])
                 grid = maze.create_grid()
                 maze.generate_maze(grid)
                 maze.print_maze(grid, start, end, [], COLORS[color_index])
                 maze.solve_maze(grid, True)
                 path = []
                 show_path = False
-            elif choice == 6:
+            elif choice == 5:
                 try:
                     show_path = False
                     width = maze.width
                     height = maze.height
                     coords = input("Enter exit coordinations [x,y]; ")
                     coords = coords.split(",")
-                    x, y = int(coords[0]), int(coords[1])
+                    try:
+                        x, y = int(coords[0]), int(coords[1])
+                    except:
+                        raise ValueError("please provide x,y coordinations")
                     if 0 < x > width or 0 < y > height:
                         print("coordinations are out of maze")
                     else:
@@ -209,6 +221,7 @@ OUTPUT_FILE={maze.output_file}\n""",
                     clear_screen()
                     maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
                     # try:
+                    print_file("paint_maze.txt", 0, COLORS[color_index])
                     grid = maze.create_grid()
                     maze.generate_maze(grid)
                     maze.print_maze(grid, start, end, [], COLORS[color_index])
