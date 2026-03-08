@@ -247,7 +247,7 @@ class MazeGenerator:
         for x in range(width):
             top_line += "───" if grid[0][x].walls["N"] else "   "
             if x < width - 1:
-                top_line += "┬"
+                top_line += "o"
         top_line += "┐"
         print(color + top_line + RESET)
 
@@ -261,7 +261,7 @@ class MazeGenerator:
                 if (x, y) == (sx, sy):
                     middle_line += " S "
                 elif (x, y) == (ex, ey):
-                    middle_line += " G "
+                    middle_line += " E "
                 elif (x, y) in cells_of_42:
                     this_cell = self.get_cell(x, y)
                     this_cell.is42 = True
@@ -291,6 +291,6 @@ class MazeGenerator:
         for x in range(width):
             bottom_line += "───" if grid[height - 1][x].walls["S"] else "   "
             if x < width - 1:
-                bottom_line += "┴"
+                bottom_line += "o"
         bottom_line += "┘"
         print(color + bottom_line + RESET)
