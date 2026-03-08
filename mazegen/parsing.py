@@ -35,7 +35,7 @@ def parsing_line(line: str) -> tuple:
         try:
             open(value, "w")
         except Exception:
-            raise InvalideValue("OUTPUT_FILE cannot be directory")
+            raise InvalideValue("OUTPUT_FILE cannot be directory or empty")
         if not value:
             raise InvalideValue("OUTPUT_FILE cannot be '/' or empty")
 
@@ -56,9 +56,10 @@ def validate_config(config: dict):
     if missing:
         raise ValueError(f"Missing configuration keys: {missing}")
 
-    if config["WIDTH"] <= 0 or config["HEIGHT"] <= 0:
-        raise ValueError("WIDTH and HEIGHT must be greater than 0")
-
+    if config["WIDTH"] <= 9:
+        raise ValueError("WIDTH must be greater than 8")
+    if config["HEIGHT"] <= 9:
+        raise ValueError("HEIGHT must be greater than 8")
     x_entry, y_entry = config["ENTRY"]
     x_exit, y_exit = config["EXIT"]
 
@@ -75,14 +76,21 @@ def validate_config(config: dict):
 def read_file(path="config.txt"):
     config = {}
 
-    with open(path, "r", encoding="utf-8") as file:
-        for line in file:
+    with open(path, "r") as file:
+        for line_number, line in enumerate(file, start=1):
             line = line.strip()
+
             if not line or line.startswith("#"):
                 continue
+
             key, value = parsing_line(line)
-            if key not in config:
-                config[key] = value
+
+            if key in config:
+                raise InvalideValue(
+                    f"Duplicate key '{key}' found on line {line_number}"
+                )
+
+            config[key] = value
 
     validate_config(config)
     return config

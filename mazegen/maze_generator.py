@@ -38,7 +38,8 @@ class Cell:
 
 class MazeGenerator:
     def __init__(self, width: int, height: int,
-                 seed: int | None, isperfect: bool, start: tuple, end: tuple, output_file: str, fixed_seed) -> None:
+                 seed: int | None, isperfect: bool, start: tuple,
+                 end: tuple, output_file: str, fixed_seed) -> None:
         self.start = start
         self.end = end
         self.width = width
@@ -47,21 +48,10 @@ class MazeGenerator:
         self.isperfect = isperfect
         self.output_file = output_file
         self.fixed_seed = fixed_seed
-        #self.bonuses: List = []
         if seed is not None:
             self.seed = seed
         else:
-            self.seed = random.randint(0, 10**6)
-        # if seed is None:
-        #     seed = random.randint(0, 10**6)
-        #self.seed = seed
-
-        # Create a dedicated RNG
-        self.rng = random.Random(self.seed)
-        # if seed:
-        #     self.seed = seed
-        # else:
-        #     self.seed = random.randint(0, 10**6)
+            self.seed = random.randint(0, 10**6)        
 
     def fix_seed(self):
         try:
@@ -111,18 +101,17 @@ class MazeGenerator:
                 row.append(cell)
             result.append(row)
         return result
+
     def inside_grid(self, x: int, y: int) -> bool:
         if 0 <= x < self.width and 0 <= y < self.height:
             return True
         return False
+
     def get_cell(self, x: int, y: int) -> Cell | None:
         if not self.inside_grid(x, y):
             return None
         return self.grid[y][x]
-    
 
-    
-    # dfs generating maze
     def generate_maze(self, grid):
         height = len(grid)
         width = len(grid[0])

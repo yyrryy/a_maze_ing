@@ -29,7 +29,6 @@ try:
                 print(color + line.rstrip() + "\033[0m")
                 sleep(delay)
 
-    
     fixed_seed_flag = False
     try:
         config = read_file()
@@ -45,16 +44,17 @@ try:
         except Exception:
             seed = None
 
-    except (InvalideValue, ValueError) as  e:
+    except (InvalideValue, ValueError) as e:
         print(e)
         sys.exit(1)
 
     print_file("paint_maze.txt", delay=0.03, color="\033[92m")
-    
+
     clear_screen()
     print_file("paint_maze.txt", 0, "\033[92m")
     sleep(1.5)
-    maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+    maze = MazeGenerator(width, height, seed, perfect, start, end,
+                         output_file, fixed_seed_flag)
     # try:
     grid = maze.create_grid()
     maze.generate_maze(grid)
@@ -63,15 +63,6 @@ try:
     path = []
     show_path = False
     while True:
-        
-        # for cells in maze.grid:
-        #     for cell in cells:
-        #         print("====cells======", cell.walls, cell.isvisited)
-        # maze.generate_maze(grid)
-        # maze.print_maze(grid, entry, exit, COLORS[color_index])
-        # for cells in maze.grid:
-        #     for cell in cells:
-        #         print(cell.x, cell.x, cell.isvisited, cell.is42)
         print("\n")
         print("═" * 40)
         print("║{:^38}║".format("A-Maze-ing"))
@@ -108,10 +99,11 @@ try:
                     except Exception:
                         seed = None
 
-                except (InvalideValue, ValueError) as  e:
+                except (InvalideValue, ValueError) as e:
                     print(e)
                     sys.exit(1)
-                maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+                maze = MazeGenerator(width, height, seed, perfect, start, end,
+                                     output_file, fixed_seed_flag)
                 # try:
                 grid = maze.create_grid()
                 maze.generate_maze(grid)
@@ -162,10 +154,11 @@ try:
                     except Exception:
                         seed = None
 
-                except (InvalideValue, ValueError) as  e:
+                except (InvalideValue, ValueError) as e:
                     print(e)
                     sys.exit(1)
-                maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+                maze = MazeGenerator(width, height, seed, perfect, start, end,
+                                     output_file, fixed_seed_flag)
                 # try:
                 print_file("paint_maze.txt", 0, COLORS[color_index])
                 grid = maze.create_grid()
@@ -183,7 +176,7 @@ try:
                     coords = coords.split(",")
                     try:
                         x, y = int(coords[0]), int(coords[1])
-                    except:
+                    except Exception:
                         raise ValueError("please provide x,y coordinations")
                     if 0 < x > width or 0 < y > height:
                         print("coordinations are out of maze")
@@ -191,10 +184,10 @@ try:
                         try:
                             with open("config.txt", "w") as file:
                                 print(f"""WIDTH={width}
+HEIGHT={maze.height}
 ENTRY={maze.start[0]},{maze.start[1]}
 EXIT={x},{y}
 perFect={maze.isperfect}
-HEIGHT={maze.height}
 OUTPUT_FILE={maze.output_file}\n""",
                                     file=file)
                             if fixed_seed_flag:
@@ -219,7 +212,8 @@ OUTPUT_FILE={maze.output_file}\n""",
                         print(e)
                         sys.exit(1)
                     clear_screen()
-                    maze = MazeGenerator(width, height, seed, perfect, start, end, output_file, fixed_seed_flag)
+                    maze = MazeGenerator(width, height, seed, perfect, start,
+                                         end, output_file, fixed_seed_flag)
                     # try:
                     print_file("paint_maze.txt", 0, COLORS[color_index])
                     grid = maze.create_grid()
