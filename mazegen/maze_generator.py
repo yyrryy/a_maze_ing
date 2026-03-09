@@ -1,9 +1,10 @@
 import random
-from typing import List, Optional, Tuple
+from typing import List, Tuple, Optional
 from .utils import _42cells, get_neighbors, reset_cells, get_path, print_hexa
-from collections import deque
 from time import sleep
 import sys
+
+
 class Cell:
     def __init__(self, x, y):
         self.x = x
@@ -11,7 +12,7 @@ class Cell:
         self.isvisited = False
         self.is42 = False
         self.walls = {"N": True, "E": True, "S": True, "W": True}
-    
+
     def remove_walls(self, neighbor, direction):
         if direction == "N":
             self.walls["N"] = False
@@ -30,16 +31,24 @@ class Cell:
         value = 0
         count = 0
         for direction in self.walls:
-            closed = (self.walls[direction] is True)
+            closed = self.walls[direction] is True
             value += closed << count
             count += 1
         return value
 
 
 class MazeGenerator:
-    def __init__(self, width: int, height: int,
-                 seed: int | None, isperfect: bool, start: tuple,
-                 end: tuple, output_file: str, fixed_seed) -> None:
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        isperfect: bool,
+        start: Tuple,
+        end: Tuple,
+        output_file: str,
+        fixed_seed: bool,
+        seed: Optional[int] = None,
+    ) -> None:
         self.start = start
         self.end = end
         self.width = width
@@ -51,7 +60,7 @@ class MazeGenerator:
         if seed is not None:
             self.seed = seed
         else:
-            self.seed = random.randint(0, 10**6)        
+            self.seed = random.randint(0, 10**6)
 
     def fix_seed(self):
         try:
@@ -115,74 +124,43 @@ class MazeGenerator:
     def generate_maze(self, grid):
         height = len(grid)
         width = len(grid[0])
-        #print("===========", height, width)
+
         stack = []
 
-        #random.seed(self.seed)
-        
-        
         start = grid[0][0]
         start.isvisited = True
         stack.append(start)
-        
+
         random.seed(str(self.seed))
         print(f"Current maze seed: {self.seed}")
         while stack:
             current_cell = stack[-1]
             neighbors = get_neighbors(grid, current_cell, width, height)
-            #random.seed(this_seed)
+
             if neighbors:
-                # direction, next_cell = random.choice(neighbors)
                 direction, next_cell = random.choice(neighbors)
-                
+
                 current_cell.remove_walls(next_cell, direction)
 
                 next_cell.isvisited = True
                 stack.append(next_cell)
             else:
                 stack.pop()
-        # directions = [
-        #     ("N", 0, -1),
-        #     ("S", 0, 1),
-        #     ("E", 1, 0),
-        #     ("W", -1, 0),
-        # ]
-        # if not self.isperfect:
-        #     extra_walls_to_break = int((self.width * self.height) / 10)
-        #     for _ in range(extra_walls_to_break):
-        #         rx, ry = random.randint(1, self.width-1), \
-        #             random.randint(1, self.height-1)
-        #         random_dir = random.choice(directions)
-        #         direction, dx, dy = random_dir
-        #         nx, ny = rx + dx, ry + dy
-        #         # to make sure if it's owned by 42 block
-        #         curent_cell = self.get_cell(rx, ry)
-        #         next_cell = self.get_cell(nx, ny)
-        #         if curent_cell and next_cell:
-        #             if self.inside_grid(nx, ny) and not curent_cell.is42 and\
-        #                     not next_cell.is42:
-        #                 pass
-        #                 # current_cell.remove_walls(next_cell, direction)
-        #                 # self.carve(rx, ry, nx, ny, random_dir)
+
         reset_cells(grid, width, height)
-        
+
         print_hexa(self.output_file, grid, self.start, self.end)
 
     # solve using BFS
     def solve_maze(self, grid, print_to_file):
-        # print("asdasd")
         start = self.start
         goal = self.end
 
         cells_to_explore = [start]
         visited = set([start])
-        parents = {
-            start: {
-                "parent": None,
-                "is_solution": False,
-                "direction": None
+        parents = {start: {
+            "parent": None, "is_solution": False, "direction": None}
             }
-        }
 
         while cells_to_explore:
             x, y = cells_to_explore.pop(0)
@@ -193,12 +171,11 @@ class MazeGenerator:
 
             cell = grid[y][x]
             directions = {
-                ('N', 0, -1),
-                ('S', 0, 1),
-                ('E', 1, 0),
-                ('W', -1, 0),
+                ("N", 0, -1),
+                ("S", 0, 1),
+                ("E", 1, 0),
+                ("W", -1, 0),
             }
-            #print("cell", cell, cell.walls["N"], cell.walls["S"], cell.walls["W"], cell.walls["E"])
             for direction, dx, dy in directions:
 
                 if cell and cell.walls[direction]:
@@ -214,11 +191,10 @@ class MazeGenerator:
                     parents[(nx, ny)] = {
                         "parent": (x, y),
                         "is_solution": False,
-                        "direction": direction
+                        "direction": direction,
                     }
                     cells_to_explore.append((nx, ny))
         return get_path(parents, grid, self.output_file, print_to_file)
-        #return parents
 
     def print_maze(self, grid, entry, end, path, color="\033[97m"):
         RESET = "\033[0m"
@@ -227,10 +203,10 @@ class MazeGenerator:
         ex, ey = end
         sx, sy = entry
         cells_of_42 = _42cells(width, height)
-        if (entry in cells_of_42 or end in cells_of_42):
+        if entry in cells_of_42 or end in cells_of_42:
             print("entry or exit shouldnt be in 42 cells")
             sys.exit(1)
-            
+
         # ===== Top Border =====
         top_line = "┌"
         for x in range(width):
@@ -255,13 +231,11 @@ class MazeGenerator:
                     this_cell = self.get_cell(x, y)
                     this_cell.is42 = True
                     this_cell.isvisited = True
-                    #print(this_cell.is42)
-                    middle_line += " ▣ "
+                    middle_line += "\033[102m   \033[0m" + color
                 elif (x, y) in path:
-                    middle_line += f" * "
+                    middle_line += " * "
                 else:
-                    #middle_line += f"{x},{y}"
-                    middle_line += f"   "
+                    middle_line += "   "
                 sleep(0.003)
 
             middle_line += "│" if grid[y][width - 1].walls["E"] else " "

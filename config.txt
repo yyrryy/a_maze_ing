@@ -1,8 +1,8 @@
-    WIDTh    =     15
-
-ENTRY=0,0
-EXIT=1,0
-perFect=fALSE
-HEIGHT=10
+WIDTH=15
+HEIGHT=15
+ENTRY=15,15
+EXIT=0,0
+perFect=False
 OUTPUT_FILE='test.txt'
 
+SEED=980625
