@@ -1,8 +1,7 @@
-WIDTH=15
-HEIGHT=15
-ENTRY=15,15
-EXIT=0,0
+WIDTH=9
+HEIGHT=7
+ENTRY=0,    0
+EXIT=3,2
 perFect=False
-OUTPUT_FILE='test.txt'
+OUTPUT_FILE=testsdfsf.asdasdfsdf.py
 
-SEED=980625

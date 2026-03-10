@@ -15,7 +15,7 @@ def parsing_line(line: str) -> tuple:
         if not value.isdigit():
             raise ValueError(f"{key} must be a positive integer. Got: {value}")
         if not value:
-            raise ValueError(f"{key} must be a positive integer. Got: empty")    
+            raise ValueError(f"{key} must be a positive integer. Got: empty")
         value = int(value)
     elif key in ("ENTRY", "EXIT"):
         parts = value.split(",")
@@ -32,6 +32,8 @@ def parsing_line(line: str) -> tuple:
             raise ValueError("invalid input seed can just be "
                   "(int, float, str, bytes, None)")
     elif key == "OUTPUT_FILE":
+        if ".py" in value[-3:]:
+            raise InvalideValue("OUTPUT_FILE cannot be a .py file")
         try:
             open(value, "w")
         except Exception:
@@ -39,7 +41,8 @@ def parsing_line(line: str) -> tuple:
         if not value:
             raise InvalideValue("OUTPUT_FILE cannot be '/' or empty")
 
-    if key not in {"WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT", "SEED"}:
+    if key not in {"WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE",
+                   "PERFECT", "SEED"}:
         raise InvalideValue(f"Unknown key: {key}")
 
     return key, value
@@ -56,14 +59,15 @@ def validate_config(config: dict):
     if missing:
         raise ValueError(f"Missing configuration keys: {missing}")
 
-    if config["WIDTH"] <= 9:
+    if config["WIDTH"] <= 8:
         raise ValueError("WIDTH must be greater than 8")
-    if config["HEIGHT"] <= 9:
-        raise ValueError("HEIGHT must be greater than 8")
+    if config["HEIGHT"] <= 6:
+        raise ValueError("HEIGHT must be greater than 6")
     x_entry, y_entry = config["ENTRY"]
     x_exit, y_exit = config["EXIT"]
 
-    if not (0 <= x_entry < config["WIDTH"] and 0 <= y_entry < config["HEIGHT"]):
+    if not (0 <= x_entry < config["WIDTH"]
+            and 0 <= y_entry < config["HEIGHT"]):
         raise ValueError("ENTRY is outside maze bounds")
 
     if not (0 <= x_exit < config["WIDTH"] and 0 <= y_exit < config["HEIGHT"]):

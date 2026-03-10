@@ -1,12 +1,8 @@
 import sys
 import os
 from time import sleep
-from colorama import init
 from mazegen import MazeGenerator, read_file, InvalideValue,  _42cells
 try:
-    init()  # Windows support
-
-    # ANSI Colors
     COLORS = [
         "\033[97m",  # White
         "\033[92m",  # Green
@@ -61,7 +57,7 @@ try:
     maze.generate_maze(grid)
     maze.print_maze(grid, start, end, [], COLORS[color_index])
     maze.solve_maze(grid, True)
-    path = []
+    path: list[str] = []
     show_path = False
     while True:
         print("\n")
@@ -79,9 +75,9 @@ try:
         print("╚" + "═" * 50 + "╝")
 
         try:
-            choice = input("Choice? (1-6): ")
+            str_choice = input("Choice? (1-6): ")
             try:
-                choice = int(choice)
+                choice = int(str_choice)
             except ValueError:
                 print("Not valid input !")
                 break
@@ -191,8 +187,8 @@ try:
                     show_path = False
                     width = maze.width
                     height = maze.height
-                    coords = input("Enter exit coordinations [x,y]: ")
-                    coords = coords.split(",")
+                    coords_str = input("Enter exit coordinations [x,y]: ")
+                    coords = coords_str.split(",")
                     try:
                         x, y = int(coords[0]), int(coords[1])
                     except Exception:
@@ -203,7 +199,7 @@ try:
                     if (x, y) in _42cells(width, height):
                         print("Coordinations are in 42 cells")
                         break
-                    if (x, y) == start:
+                    if x == start[0] and y == start[1]:
                         print("Coordinations must be different than the entry")
                         break
                     else:
