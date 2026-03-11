@@ -55,7 +55,7 @@ def parsing_line(line: str) -> Tuple[str, Any]:
         if value_str == "":
             raise ValueError("invalid input seed can just be "
                   "(int, float, str, bytes, None)")
-            final_value = value_str
+        final_value = value_str
 
     elif key == "OUTPUT_FILE":
         if not value_str:
