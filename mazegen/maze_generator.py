@@ -32,6 +32,12 @@ class MazeGenerator:
             self.seed = random.randint(0, 10**6)
 
     def fix_seed(self):
+        """
+        Enable or disable a fixed random seed.
+
+        When the seed is fixed, the maze generation becomes deterministic,
+        producing the same maze each time.
+        """
         try:
             if self.fixed_seed:
                 print("SEED unfixed, choose again")
@@ -68,6 +74,16 @@ class MazeGenerator:
             print(f"ERROR: {e}")
 
     def create_grid(self):
+        """
+        Create a 2D grid of Cell objects.
+
+        Each position (x, y) in the grid is initialized with a Cell.
+        Cells whose coordinates appear in _42cells(width, height)
+        are marked as visited and flagged as `is42`.
+
+        Returns:
+            list[list[Cell]]: A 2D list representing the grid.
+        """
         result = []
         for y in range(self.height):
             row = []
@@ -81,16 +97,46 @@ class MazeGenerator:
         return result
 
     def inside_grid(self, x: int, y: int) -> bool:
+        """
+        Check whether the given coordinates are inside the grid bounds.
+        """
         if 0 <= x < self.width and 0 <= y < self.height:
             return True
         return False
 
     def get_cell(self, x: int, y: int) -> Cell | None:
+        """
+        Return the cell at the given coordinates.
+
+        Args:
+            x (int): The x-coordinate of the cell.
+            y (int): The y-coordinate of the cell.
+
+        Returns:
+            Cell | None: The cell at (x, y) if the coordinates are inside
+            the grid, otherwise None.
+        """
         if not self.inside_grid(x, y):
             return None
         return self.grid[y][x]
 
-    def generate_maze(self, grid):
+    def generate_maze(self, grid: List[List[Cell]]) -> None:
+        """
+        Generate a maze using the depth-first search (DFS)
+        backtracking algorithm.
+
+        The algorithm starts from the top-left cell
+        and explores neighboring cells
+        randomly while removing walls between connected cells.
+        A stack is used to
+        keep track of the path and backtrack
+        when no unvisited neighbors remain.
+        The random seed is set using `self.seed`
+        so the maze can be reproduced.
+
+        Args:
+            grid (list[list[Cell]]): A 2D grid of Cell objects representing the maze.
+        """
         height = len(grid)
         width = len(grid[0])
 
@@ -121,7 +167,27 @@ class MazeGenerator:
         print_hexa(self.output_file, grid, self.start, self.end)
 
     # solve using BFS
-    def solve_maze(self, grid, print_to_file):
+    def solve_maze(self, grid: List[List[Cell]], print_to_file: bool):
+        """
+        Solve the maze using breadth-first search (BFS) and optionally print
+        the solution.
+
+        The algorithm starts from `self.start` and explores neighboring cells
+        level by level.
+        Each cell keeps track of its parent, direction, and whether it is part
+        of the solution path.
+        The search stops when the goal cell (`self.end`) is reached. The
+        solution path is reconstructed
+        using the parent links.
+        Args:
+            grid (list[list[Cell]]): A 2D grid of Cell objects representing
+            the maze.
+            print_to_file (bool): Whether to print the solution to the
+            output file.
+        Returns:
+            list[Cell]: A list of cells representing the solution path
+            from start to end.
+        """
         start = self.start
         goal = self.end
 
@@ -165,7 +231,28 @@ class MazeGenerator:
                     cells_to_explore.append((nx, ny))
         return get_path(parents, grid, self.output_file, print_to_file)
 
-    def print_maze(self, grid, entry, end, path, color="\033[97m"):
+    def print_maze(self, grid: List[List[Cell]],
+                   entry: Tuple, end: Tuple,
+                   path: str, color: str = "\033[97m") -> None:
+        """
+        Print a visual representation of the maze to the terminal.
+
+        The maze is displayed with Unicode box-drawing characters. The
+        start (`S`) and end (`E`) positions are highlighted. Cells flagged
+        as "42" are displayed with a green background. The solution path,
+        if provided, is displayed with '*' symbols. Walls and borders are
+        drawn based on each cell's wall configuration.
+
+        Args:
+            grid (List[List[Cell]]): 2D grid of Cell
+            objects representing the maze.
+            entry (Tuple[int, int]): Coordinates of the starting cell (S).
+            end (Tuple[int, int]): Coordinates of the goal cell (E).
+            path (str): A collection of coordinates
+            representing the solution path.
+            color (str, optional): ANSI escape code for the foreground color.
+            Defaults to white.
+        """
         RESET = "\033[0m"
         height = len(grid)
         width = len(grid[0])

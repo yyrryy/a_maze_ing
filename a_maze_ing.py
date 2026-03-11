@@ -14,11 +14,23 @@ try:
     ]
 
     def clear_screen():
-        os.system("clear" if os.name != "nt" else "cls")
+        """
+        Clear the terminal screen.
+
+        Uses 'clear' on Unix-like systems and 'cls' on Windows.
+        """
 
     color_index = 0
 
     def print_file(file_path, delay=0.05, color=COLORS[1]):
+        """
+        Print the contents of a file to the terminal.
+
+        Args:
+            file_path (str): Path to the file to display.
+            delay (float): Delay between characters or lines when printing.
+            color (str): Terminal color used for the output.
+        """
         clear_screen()
         with open(file_path, "r", encoding="utf-8") as f:
             for line in f:

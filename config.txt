@@ -1,7 +1,8 @@
-WIDTH=9
-HEIGHT=7
-ENTRY=0,    0
-EXIT=3,2
-perFect=False
-OUTPUT_FILE=testsdfsf.asdasdfsdf.py
+WIDTH=     11
+HEIGHT=20
+ENTRY=1,    1
+#####
+EXIT=1,2
+perFect=True
+OUTPUT_FILE="."
 

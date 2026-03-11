@@ -1,55 +1,91 @@
+from typing import Any, Dict, Tuple, Set
+
+
 class InvalideValue(Exception):
+    """Custom exception raised for invalid configuration values."""
     pass
 
 
-def parsing_line(line: str) -> tuple:
+def parsing_line(line: str) -> Tuple[str, Any]:
+    """
+    Parses a single line from the config file into a key and a typed value.
+
+    Args:
+        line: A string representing one line from the config file.
+
+    Returns:
+        A tuple containing the key (str) and the parsed value (Any).
+
+    Raises:
+        ValueError: If the line format is incorrect or values are invalid.
+        InvalideValue: If the key is unknown or file path is restricted.
+    """
     line = line.strip()
     if "=" not in line:
         raise ValueError(f"Invalid line: {line}")
 
-    key, value = line.split("=", 1)
-    key = key.upper().strip()
-    value = value.strip()
+    key_raw, value_raw = line.split("=", 1)
+    key: str = key_raw.upper().strip()
+    value_str: str = value_raw.strip()
+
+    final_value: Any
 
     if key in ("WIDTH", "HEIGHT"):
-        if not value.isdigit():
-            raise ValueError(f"{key} must be a positive integer. Got: {value}")
-        if not value:
-            raise ValueError(f"{key} must be a positive integer. Got: empty")
-        value = int(value)
+        if not value_str.isdigit():
+            raise ValueError(
+                f"{key} must be a positive integer. Got: {value_str}"
+                )
+        final_value = int(value_str)
+
     elif key in ("ENTRY", "EXIT"):
-        parts = value.split(",")
+        parts = value_str.split(",")
         if len(parts) != 2 or not all(p.strip().isdigit() for p in parts):
-            raise ValueError(f"{key} must be in format x,y. Got: {value}")
-        value = tuple(int(p.strip()) for p in parts)
+            raise ValueError(f"{key} must be in format x,y. Got: {value_str}")
+        final_value = tuple(int(p.strip()) for p in parts)
+
     elif key == "PERFECT":
-        value = value.lower()
-        if value not in ("true", "false"):
-            raise ValueError(f"PERFECT must be True or False. Got: {value}")
-        value = value == "true"
+        low_value = value_str.lower()
+        if low_value not in ("true", "false"):
+            raise ValueError(
+                f"PERFECT must be True or False. Got: {value_str}"
+                )
+        final_value = (low_value == "true")
+
     elif key == "SEED":
-        if value == "":
+        if value_str == "":
             raise ValueError("invalid input seed can just be "
                   "(int, float, str, bytes, None)")
-    elif key == "OUTPUT_FILE":
-        if ".py" in value[-3:]:
-            raise InvalideValue("OUTPUT_FILE cannot be a .py file")
-        try:
-            open(value, "w")
-        except Exception:
-            raise InvalideValue("OUTPUT_FILE cannot be directory or empty")
-        if not value:
-            raise InvalideValue("OUTPUT_FILE cannot be '/' or empty")
+            final_value = value_str
 
-    if key not in {"WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE",
-                   "PERFECT", "SEED"}:
+    elif key == "OUTPUT_FILE":
+        if not value_str:
+            raise InvalideValue("OUTPUT_FILE cannot be empty")
+        if value_str.endswith(".py"):
+            raise InvalideValue(
+                "OUTPUT_FILE cannot be a .py file for security"
+                )
+        final_value = value_str
+        try:
+            open(final_value, 'w')
+        except Exception as e:
+            raise InvalideValue(f"cant open: {e}")
+    else:
         raise InvalideValue(f"Unknown key: {key}")
 
-    return key, value
+    return key, final_value
 
 
 def validate_config(config: dict):
-    required_keys = {
+    """
+    Validates the entire configuration dictionary against maze rules.
+
+    Args:
+        config: Dictionary containing all parsed settings.
+
+    Raises:
+        ValueError: If keys are missing or logic (bounds/size) is violated.
+    """
+    required_keys: Set[str] = {
         "WIDTH", "HEIGHT", "ENTRY",
         "EXIT", "OUTPUT_FILE",
         "PERFECT",
@@ -77,24 +113,41 @@ def validate_config(config: dict):
         raise ValueError("Entry point and Exit point cannot be the same")
 
 
-def read_file(path="config.txt"):
-    config = {}
+def read_file(path: str = "config.txt") -> Dict[str, Any]:
+    """
+    Reads and parses the configuration file.
 
-    with open(path, "r") as file:
-        for line_number, line in enumerate(file, start=1):
-            line = line.strip()
+    Args:
+        path: Path to the config file. Default is 'config.txt'.
 
-            if not line or line.startswith("#"):
-                continue
+    Returns:
+        A validated configuration dictionary.
+    """
+    config: Dict[str, Any] = {}
 
-            key, value = parsing_line(line)
+    try:
+        with open(path, "r") as file:
+            for line_number, line in enumerate(file, start=1):
+                line = line.strip()
 
-            if key in config:
-                raise InvalideValue(
-                    f"Duplicate key '{key}' found on line {line_number}"
-                )
+                if not line or line.startswith("#"):
+                    continue
 
-            config[key] = value
+                key, value = parsing_line(line)
 
+                if key in config:
+                    raise InvalideValue(
+                        f"Duplicate key '{key}' found on line {line_number}"
+                    )
+
+                config[key] = value
+    except FileNotFoundError:
+        raise InvalideValue(
+            f"The file '{path}' was not found"
+            )
+    except PermissionError:
+        raise InvalideValue(
+            f"The file '{path}' has no reading permissions"
+            )
     validate_config(config)
     return config
