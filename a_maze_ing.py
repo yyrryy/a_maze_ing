@@ -19,6 +19,7 @@ try:
 
         Uses 'clear' on Unix-like systems and 'cls' on Windows.
         """
+        os.system("clear" if os.name != "nt" else "cls")
 
     color_index = 0
 
